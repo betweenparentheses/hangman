@@ -10,6 +10,17 @@ def initialize
   @num_wrong = 0
 end
 
+def play
+
+  load = check_load
+  load_game if load == "Y"
+
+  set_word
+  take_turns
+
+  ending
+end
+
 def set_word
   word_list = File.open("5desk.txt").readlines
   until @word.length >= 5 && @word.length <= 12
@@ -18,46 +29,47 @@ def set_word
   @display_word = "_" * @word.length
 end
 
-
-def play
-  print "Do you want to load a game (Y/N): "
-  load = gets.chomp.upcase
-  load_game if load == "Y"
-
-  set_word
-
+def display_turn
+  puts "\n*************************************"
+  show_hangman(@num_wrong)
+  show_letters
+end
+def take_turns
   until lost? || victorious?
-    puts "\n*************************************"
-    show_hangman(@num_wrong)
-    show_letters
-    print "Guess a letter, or enter the & character to save game: "
+    display_turn
+
+    print "Guess a letter, or enter the & character to save your game: "
     guess = gets[0].upcase
-    if guess == "&"
-      save_game
-      exit
-    end
+
     check_guess(guess)
   end
-
-  if lost?
-    puts "The hangman has been hung. You lose."
-    puts "The word was #{@word}, by the way."
-  elsif victorious?
-    puts "Victory! It WAS the word '#{@word}.'"
-  end
-
 end
+
+def check_load
+  print "Do you want to load a game (Y/N): "
+  load = gets.chomp.upcase
+end
+
+def ending
+  if lost?
+    puts "\nThe hangman has been hung. You lose."
+    puts "\nThe word was #{@word}, by the way."
+  elsif victorious?
+    puts "\nVictory! It WAS the word '#{@word}.'"
+  end
+  exit
+end
+
 
 def save_game
-  save_object("game.sv", self)
-end
-
-def save_object (filename, object)
-  File.open(filename, 'w') {|f| f.write(YAML::dump(object))}
+  File.open("game.sv", 'w') {|file| file.write(YAML::dump(self))}
 end
 
 def load_game
-  YAML::load(File.read("game.sv"))
+  loaded = YAML::load(File.read("game.sv"))
+  puts "Savegame loaded!"
+  loaded.take_turns
+  loaded.ending
 end
 
 
@@ -82,7 +94,11 @@ def show_letters
 end
 
 def check_guess(guess)
-  if @word.include?(guess)
+  if guess == "&"
+    save_game
+    puts "Game saved. Exiting..."
+    exit
+  elsif @word.include?(guess)
     make_visible(guess)
   else
     @num_wrong += 1
@@ -101,7 +117,7 @@ def make_visible(guess)
 end
 
 def show_hangman(num_wrong)
-  puts "(Hangman is shown below)\n"
+  puts "(Hangman is shown below. Use your imagination!)\n"
   case num_wrong
   when 0
     puts "*EMPTY GALLOWS PIC*"

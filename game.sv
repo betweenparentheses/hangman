@@ -1,6 +1,10 @@
 --- !ruby/object:Hangman::Game
-word: PARVE
-display_word: ____E
+word: TERRAZZO
+display_word: TERRA___
 guessed_wrong:
+- F
+- H
+- N
+- Q
 - S
-num_wrong: 1
+num_wrong: 5
